@@ -1961,6 +1961,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         	    if (screenIsOn && !keyguardActive) {
         		result = ACTION_GO_TO_SLEEP;
         	    }
+        	}
         	else {
         	    if (mShouldTurnOffOnKeyUp && keyguardActive) {
         		result |= ACTION_GO_TO_SLEEP;
