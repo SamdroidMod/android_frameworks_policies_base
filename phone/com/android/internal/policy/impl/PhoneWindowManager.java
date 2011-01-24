@@ -1954,6 +1954,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         Log.w(TAG, "VOLUME button: RemoteException from getPhoneInterface()", ex);
                     }
                 }
+            } else if (code == KeyEvent.KEYCODE_HOLD) {
+        	result = ACTION_PASS_TO_USER;
+        	if (down) {
+        	    mShouldTurnOffOnKeyUp = screenIsOn;
+        	    if (screenIsOn && !keyguardActive) {
+        		result = ACTION_GO_TO_SLEEP;
+        	    }
+        	else {
+        	    if (mShouldTurnOffOnKeyUp && keyguardActive) {
+        		result |= ACTION_GO_TO_SLEEP;
+        	    }
+        	}
             }
         }
 
@@ -2025,6 +2037,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         int flags = event.flags;
         if (keycode == RawInputEvent.BTN_MOUSE) {
             flags |= WindowManagerPolicy.FLAG_WAKE;
+    	} else if (keycode == KeyEvent.KEYCODE_HOLD) {
+    	    flags |= WindowManagerPolicy.FLAG_WAKE;
         }
         return (flags
                 & (WindowManagerPolicy.FLAG_WAKE | WindowManagerPolicy.FLAG_WAKE_DROPPED)) != 0;

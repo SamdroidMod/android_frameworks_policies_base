@@ -33,6 +33,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.os.Handler;
 import android.media.AudioManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
@@ -92,6 +93,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     private String mDateFormatString;
     private java.text.DateFormat mTimeFormat;
     private boolean mEnableMenuKeyInLockScreen;
+
+    Handler mHandler;
 
     /**
      * The status of this lock screen.
@@ -171,6 +174,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
             KeyguardUpdateMonitor updateMonitor,
             KeyguardScreenCallback callback) {
         super(context);
+        mHandler = new Handler();
         mLockPatternUtils = lockPatternUtils;
         mUpdateMonitor = updateMonitor;
         mCallback = callback;
@@ -281,14 +285,39 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
         updateStatusLines();
     }
 
+    boolean mHoldPressed;
+
+    Runnable mHoldCallback = new Runnable() {
+	public void run() {
+	    mCallback.goToUnlockScreen();
+	}
+    };
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU && mEnableMenuKeyInLockScreen) {
             mCallback.goToUnlockScreen();
         }
+        if (keyCode == KeyEvent.KEYCODE_HOLD) {
+    	    if (!mHoldPressed) {
+    		mHoldPressed = true;
+    		mHandler.postDelayed(mHoldCallback, 400);
+    	    }
+    	}
         return false;
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+	if (keyCode == KeyEvent.KEYCODE_HOLD) {
+	    if (mHoldPressed) {
+		mHandler.removeCallbacks(mHoldCallback);
+		mHoldPressed = false;
+	    }
+	}
+	return false;
+    }
+    
     /** {@inheritDoc} */
     public void onTrigger(View v, int whichHandle) {
         if (whichHandle == SlidingTab.OnTriggerListener.LEFT_HANDLE) {
